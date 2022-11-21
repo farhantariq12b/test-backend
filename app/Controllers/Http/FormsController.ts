@@ -8,8 +8,9 @@ export default class FormsController {
     console.log('jsd nfjn ')
     return await Form.all()
   }
-  public async storeById({ params, request, response }: HttpContextContract) {
-    const id = params.user_id
+  public async storeById({ request, auth, response }: HttpContextContract) {
+    await auth.use('jwt').check()
+    const id = auth.use('jwt').user?.id
     const body = request.body()
     body.user_id = id
     try {
@@ -26,9 +27,11 @@ export default class FormsController {
       return error.message
     }
   }
-
-  public async getById({ params }: HttpContextContract) {
-    const user = await User.find(params.user_id)
+  
+  public async getById({auth }: HttpContextContract) {
+    await auth.use('jwt').check()
+    const id = auth.use('jwt').user?.id
+    const user = await User.find(id)
     const forms = await Form.findMany([...(user?.forms ?? [])])
     for(let i=0;i<forms?.length;i++){
       const questions = await Question.findMany([...forms[i]?.questions])
@@ -36,7 +39,7 @@ export default class FormsController {
         form_questions:questions
       })
       for(let j=0;j<forms[i]?.form_questions?.length;j++){
-
+        
         const options = await Option.findMany([...forms[i]?.form_questions[j]?.options])
         forms[i]?.form_questions[j]?.merge({
           question_options:options
@@ -48,6 +51,7 @@ export default class FormsController {
   }
 
   public async deleteById({ params }: HttpContextContract) {
+
     const id = params.form_id
     try {
       const form = await Form.find(id)

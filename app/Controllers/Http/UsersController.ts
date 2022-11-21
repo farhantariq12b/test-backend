@@ -1,17 +1,18 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import jwt_decode from "jwt-decode";
+
 import User from 'App/Models/User'
 export default class UsersController {
   public async login({ request, response, auth, session }: HttpContextContract) {
     const email = request.input('email')
     const password = request.input('password')
-    
     try{
       if(await auth.attempt(email, password)){
 
       const user = await User.findBy("email",email);
       const jwt = await auth.use("jwt").generate(user as User);
       Object.assign(user as User, jwt)
-      console.log('im here !!');
+      console.log("------------------\n",jwt_decode(jwt.accessToken),"\n-----------------");
       return {user, token: jwt.accessToken}
       }
       const user = await User.find(1);

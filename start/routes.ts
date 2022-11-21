@@ -34,8 +34,8 @@ Route.get('/api/logout', 'UsersController.logout')
 Route.post('/api/signup', 'UsersController.signup')
 
 // FORM ROUTES
-Route.post('/api/form/:user_id','FormsController.storeById')
-Route.get('/api/form/:user_id','FormsController.getById')
+Route.post('/api/form/','FormsController.storeById')
+Route.get('/api/form/','FormsController.getById')
 Route.delete('/api/form/del/:user_id/:form_id','FormsController.deleteById')
 Route.patch('/api/form/edit/:user_id/:form_id','FormsController.editById')
 
