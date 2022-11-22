@@ -27,26 +27,25 @@ Route.get('/health', async ({ response }) => {
   return report.healthy ? response.ok(report) : response.badRequest(report)
 })
 
-
 // AUTH ROUTES
 Route.post('/api/login', 'UsersController.login')
 Route.get('/api/logout', 'UsersController.logout')
 Route.post('/api/signup', 'UsersController.signup')
 
 // FORM ROUTES
-Route.post('/api/form/','FormsController.storeById')
-Route.get('/api/form/','FormsController.getById')
-Route.delete('/api/form/del/:user_id/:form_id','FormsController.deleteById')
-Route.patch('/api/form/edit/:user_id/:form_id','FormsController.editById')
+Route.post('/api/form/', 'FormsController.storeById')
+Route.get('/api/form/', 'FormsController.getById')
+Route.delete('/api/form/:form_id', 'FormsController.deleteById')
+Route.patch('/api/form/:form_id', 'FormsController.editById')
 
 // QUESTION ROUTES
-Route.post('/api/question/:form_id','QuestionsController.storeById')
-Route.get('/api/question/:form_id','QuestionsController.getById')
-Route.delete('/api/question/del/:question_id','QuestionsController.deleteById')
-Route.patch('/api/question/edit/:question_id','QuestionsController.editById')
+Route.post('/api/question/:form_id', 'QuestionsController.storeById')
+Route.get('/api/question/:form_id', 'QuestionsController.getById')
+Route.delete('/api/question/:question_id', 'QuestionsController.deleteById')
+Route.patch('/api/question/:question_id', 'QuestionsController.editById')
 
 // OPTIONS ROUTES
-Route.post('/api/option/:question_id','OptionsController.storeById')
-Route.get('/api/option/:question_id','OptionsController.getById')
-Route.delete('/api/option/del/:option_id','OptionsController.deleteById')
-Route.patch('/api/option/edit/:option_id','OptionsController.editById')
+Route.post('/api/option/:question_id', 'OptionsController.storeById')
+Route.get('/api/option/:question_id', 'OptionsController.getById')
+Route.delete('/api/option/:option_id', 'OptionsController.deleteById')
+Route.patch('/api/option/:option_id', 'OptionsController.editById')

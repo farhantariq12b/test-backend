@@ -12,36 +12,61 @@ export default class QuestionsController {
       form?.merge({
         questions: [...form.questions, question.id],
       })
-      form?.save()
-      response.status(201)
-      return form
+      await form?.save()
+      return response.status(201).json({
+        success: true,
+        data: form,
+      })
     } catch (error) {
-      return error.message
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
     }
   }
 
-  public async getById({ params }: HttpContextContract) {
-    const form = await Form.find(params.form_id)
-    const questions = await Question.findMany([...(form?.questions ?? [])])
-    return questions
+  public async getById({ params, response }: HttpContextContract) {
+    try {
+      const form = await Form.find(params.form_id)
+      const questions = await Question.findMany([...(form?.questions ?? [])])
+      return response.json({
+        success: true,
+        data: questions,
+      })
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
+    }
   }
 
-  public async deleteById({ params }: HttpContextContract) {
+  public async deleteById({ params, response }: HttpContextContract) {
     const id = params.question_id
     try {
       const question = await Question.find(id)
-      if (question) {
-        await question.delete()
-        return 'question with id ' + question?.id + ' deleted'
-      } else {
-        return 'Question not found'
+      if (!question) {
+        throw new Error('Question not found')
       }
-    } catch (err) {
-      return err.message
+      await question.delete()
+      const form = await Form.find(question.form_id)
+      form?.merge({
+        questions: [...form?.questions.filter((item) => item !== +id)],
+      })
+      await form?.save()
+      return response.json({
+        success: true,
+        message: 'Question Deleted Successfully',
+      })
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
     }
   }
 
-  public async editById({ params, request }: HttpContextContract) {
+  public async editById({ params, request, response }: HttpContextContract) {
     const id = params.question_id
     const body = request.body()
     try {
@@ -51,17 +76,16 @@ export default class QuestionsController {
           question: body.question,
           visible: body.visible,
           priority: body.priority,
-          // questions:[...form.questions,...body.questions || []],
-          // user_id: body.user_id
         })
-        question?.save()
-        return question
-      } else {
-        return 'Question not found'
+        await question?.save()
+        return response.json({ success: true, data: question })
       }
-    } catch (err) {
-      return err.message
+      throw new Error('Question not Found')
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
     }
   }
-
 }

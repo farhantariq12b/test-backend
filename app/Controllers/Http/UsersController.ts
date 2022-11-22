@@ -1,44 +1,48 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import jwt_decode from "jwt-decode";
-
 import User from 'App/Models/User'
 export default class UsersController {
-  public async login({ request, response, auth, session }: HttpContextContract) {
+  public async login({ request, auth, response }: HttpContextContract) {
     const email = request.input('email')
     const password = request.input('password')
-    try{
-      if(await auth.attempt(email, password)){
-
-      const user = await User.findBy("email",email);
-      const jwt = await auth.use("jwt").generate(user as User);
-      Object.assign(user as User, jwt)
-      console.log("------------------\n",jwt_decode(jwt.accessToken),"\n-----------------");
-      return {user, token: jwt.accessToken}
+    try {
+      if (await auth.attempt(email, password)) {
+        const user = await User.findBy('email', email)
+        const jwt = await auth.use('jwt').generate(user as User)
+        return { success: true, data: { user, token: jwt.accessToken } }
       }
-      const user = await User.find(1);
-
-      // const jwt = await auth.use("jwt").generate(user as User);
-      // console.log('im here !!');
-      // return jwt
-    } catch(error){
-      console.log('im in catch ');
-      // session.flash('form','Your email or password is incorrect')
-      return error.message
+      throw new Error('Email or password is incorrect')
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
     }
   }
-  public async logout({response, auth}) {
-    try{
+  public async logout({ response, auth }) {
+    try {
       await auth.logout()
-      return 'logged out'
-    } catch(error){
-      return error.message
+      await auth.use('jwt').logout()
+      return response.json({ success: true })
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
     }
   }
   public async signup({ request, response, auth }: HttpContextContract) {
-    const body = request.body()
-    const user = await User.create(body)
-    await auth.login(user)
-    response.status(201)
-    return 'User with email '+user.email + ' signed up and logged in'
+    try {
+      const body = request.body()
+      const user = await User.create(body)
+      await auth.login(user)
+      const jwt = await auth.use('jwt').generate(user)
+      response.status(201)
+      return { success: true, data: { user, token: jwt.accessToken } }
+    } catch (error) {
+      return response.status(error?.status || 500).json({
+        status: false,
+        error: error.message,
+      })
+    }
   }
 }

@@ -15,76 +15,96 @@ export default class FormsController {
     body.user_id = id
     try {
       const form = await Form.create(body)
-      console.log(form.id)
       const user = await User.find(id)
       user?.merge({
         forms: [...user.forms, form.id],
       })
-      user?.save()
+      await user?.save()
       response.status(201)
-      return form
-    } catch (error) {
-      return error.message
-    }
-  }
-  
-  public async getById({auth }: HttpContextContract) {
-    await auth.use('jwt').check()
-    const id = auth.use('jwt').user?.id
-    const user = await User.find(id)
-    const forms = await Form.findMany([...(user?.forms ?? [])])
-    for(let i=0;i<forms?.length;i++){
-      const questions = await Question.findMany([...forms[i]?.questions])
-      forms[i]?.merge({
-        form_questions:questions
+      return response.json({
+        success: false,
+        data: form,
       })
-      for(let j=0;j<forms[i]?.form_questions?.length;j++){
-        
-        const options = await Option.findMany([...forms[i]?.form_questions[j]?.options])
-        forms[i]?.form_questions[j]?.merge({
-          question_options:options
-        })
-      }
-        
+    } catch (error) {
+      return response.status(error.state || 500).json({
+        success: false,
+        error: error.message,
+      })
     }
-    return forms
   }
 
-  public async deleteById({ params }: HttpContextContract) {
+  public async getById({ auth, response }: HttpContextContract) {
+    try {
+      await auth.use('jwt').check()
+      const id = auth.use('jwt').user?.id
+      const user = await User.find(id)
+      const forms = await Form.findMany([...(user?.forms ?? [])])
+      for (let i = 0; i < forms?.length; i++) {
+        const questions = await Question.findMany([...forms[i]?.questions])
+        forms[i]?.merge({
+          form_questions: questions,
+        })
+        for (let j = 0; j < forms[i]?.form_questions?.length; j++) {
+          const options = await Option.findMany([...forms[i]?.form_questions[j]?.options])
+          forms[i]?.form_questions[j]?.merge({
+            question_options: options,
+          })
+        }
+      }
+      return response.json({
+        success: true,
+        data: forms,
+      })
+    } catch (error) {
+      return response.status(error.state || 500).json({
+        success: false,
+        error: error.message,
+      })
+    }
+  }
 
+  public async deleteById({ params, response }: HttpContextContract) {
     const id = params.form_id
     try {
       const form = await Form.find(id)
-      if (form) {
-        await form.delete()
-        return form?.name + ' deleted'
-      } else {
-        return 'Form not found'
+      if (!form) {
+        throw new Error('Form not found')
       }
-    } catch (err) {
-      return err.message
+      await form.delete()
+      return response.json({
+        success: true,
+        message: 'Form deleted',
+      })
+    } catch (error) {
+      return response.status(error.state || 500).json({
+        success: false,
+        error: error.message,
+      })
     }
   }
-  public async editById({ params, request }: HttpContextContract) {
+  public async editById({ params, request, response }: HttpContextContract) {
     const id = params.form_id
     const body = request.body()
     try {
       const form = await Form.find(id)
-      if (form) {
-        form?.merge({
-          name: body.name,
-          visible: body.visible,
-          priority: body.priority,
-          // questions:[...form.questions,...body.questions || []],
-          // user_id: body.user_id
-        })
-        form?.save()
-        return form
-      } else {
-        return 'Form not found'
+      if (!form) {
+        throw new Error('Form not found')
       }
-    } catch (err) {
-      return err.message
+      form.merge({
+        name: body.name,
+        visible: body.visible,
+        priority: body.priority,
+      })
+      await form.save()
+      return response.json({
+        success: true,
+        data: form,
+      })
+    } catch (error) {
+      return response.status(error.state || 500).json({
+        success: false,
+        error: error.message,
+      })
     }
   }
 }
