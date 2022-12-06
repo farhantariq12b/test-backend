@@ -4,8 +4,9 @@
 
 Steps:
 
-1. copy ``.env.example`` to ``.env``
-2. Enter your database credentials:
+1. copy ``.env.example`` to ``.env`` using this command `cp .env.example .env`
+2. Install [Postgres](https://www.postgresql.org/download/macosx/). If not installed
+4. Change the following env variables value with your database credentials:
 
     PG_DB_NAME='database_name'
 
@@ -16,8 +17,8 @@ Steps:
 ## Project commands
 
 1. Run `yarn`
-2. Run `node ace migration:run`
-3. Run `node ace db:seed`
+2. Run `yarn migration`
+3. Run `yarn seed`
 
 ## To run the project
 

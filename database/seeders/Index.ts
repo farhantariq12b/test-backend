@@ -1,11 +1,11 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder'
 import User from 'App/Models/User'
 
-export default class extends BaseSeeder {
+export default class UserSeeder extends BaseSeeder {
   public async run() {
-    User.create({
+    await User.create({
       name: 'Admin',
-      email: 'admin3@gmail.com',
+      email: 'admin@gmail.com',
       role: 'admin',
       password: 'admin',
     })

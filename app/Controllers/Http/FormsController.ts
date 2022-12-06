@@ -16,13 +16,15 @@ export default class FormsController {
     try {
       const form = await Form.create(body)
       const user = await User.find(id)
+      const forms = [...(user?.forms || []), form.id]
+
       user?.merge({
-        forms: [...user.forms, form.id],
+        forms,
       })
       await user?.save()
       response.status(201)
       return response.json({
-        success: false,
+        success: true,
         data: form,
       })
     } catch (error) {
